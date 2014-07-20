@@ -1,0 +1,48 @@
+ data <- read.csv("activity.csv")
+ ## what is mean total number of steps taken per day?
+ library(ggplot2)
+ total.steps <- tapply(data$steps, data$date, sum, na.rm=T)
+qplot(total.steps, binwidth=1000, xlab="total number of steps taken each day")
+ mean(total.steps,na.rm=T
+)
+ median(total.steps,na.rm=T)
+ 
+ averages <- aggregate(x=list(steps=data$steps), by=list(interval=data$interval),mean, na.rm=T)
+ ggplot(data=averages, aes(xinterval, y=steps)) + geom_lines()+ xlab("5-min interval")+ ylab("average number of steps taken")
+ 
+ ## on average across all days in the dataset, the 5 min interval contains max number of steps? 
+ averages[which.max(averages$steps),]
+ 
+ ##imputting missing values
+ missing <- is.na(data$steps)
+ table(missing)
+ #fill the missing value with means
+ fill.value<- function(steps, interval) {
+   filled <-NA
+   if(!is.na(steps))
+     filled <- c(steps)
+   else
+    filled <- (averages[averages])
+   return(filled)
+ }
+ filled.data<- data
+ filled.data$steps <- mapply(fill.value, filled. data$steps, filled.data$interval)
+ 
+ total.steps <- tapply(filled.data$steps, filled.data$date, FUN=sum)
+ qplot(total.steps, binwidth=1000, xlab="total number of steps taken each day")
+ mean(total.steps)
+ median(total.steps)
+ weekday.or.weekend <- function(date) {
+       day <- weekdays(date)
+       if (day %in% c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday"))
+             return("weekday")
+       else if (day %in% c("Saturday", "Sunday"))
+             return("weekend")
+       else
+             stop("invalid date")
+   }
+ filled.data$date <- as.Date(filled.data$date)
+ filled.data$day <- sapply(filled.data$date, FUN=weekday.or.weekend)
+ averages <- aggregate(steps ~ interval + day, data=filled.data, mean)
+ ggplot(averages, aes(interval, steps)) + geom_line() + facet_grid(day ~ .) +
+     xlab("5-minute interval") + ylab("Number of steps")
